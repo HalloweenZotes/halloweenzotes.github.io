@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Halloween de película</title>
+<title>Halloween en el pueblo</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Creepster&family=Nunito:wght@400;700&display=swap">
 <style>
@@ -14,19 +14,23 @@ body{background:var(--bg);color:var(--ink);font:16px/1.5 Nunito,system-ui,sans-s
 header{padding:12px 16px;border-bottom:2px solid var(--accent);background:var(--panel)}
 h1{font:2rem/1.1 Creepster,Georgia,serif;margin:0;color:var(--accent);letter-spacing:.04em;font-weight:400}
 header p{margin:2px 0 0;color:var(--mute);font-size:.95rem}
-main{flex:1;display:grid;grid-template-columns:340px 1fr;min-height:0}
+main{flex:1;display:grid;grid-template-columns:350px 1fr;min-height:0}
 aside{background:var(--panel);overflow-y:auto;border-right:1px solid var(--line);padding:12px}
-aside h2{font-size:1.05rem;margin:14px 0 6px}
-.place{display:block;width:100%;text-align:left;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer;font:inherit}
+aside h2{font-size:1.05rem;margin:16px 0 6px;display:flex;align-items:center;gap:8px}
+.filters{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.filters label{display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.filters input{accent-color:var(--accent);width:18px;height:18px}
+.place{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer;font:inherit}
 .place:hover,.place.on{border-color:var(--accent)}
+.place .ic{flex:none;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:22px}
 .place strong{display:block}
-.place span{color:var(--mute);font-size:.9rem}
+.place span.d{color:var(--mute);font-size:.9rem}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 button.btn,a.btn{background:var(--accent);color:#1b1325;border:0;border-radius:8px;padding:8px 12px;font:700 .9rem Nunito,sans-serif;cursor:pointer;text-decoration:none;display:inline-block}
 button.btn.alt,a.btn.alt{background:transparent;color:var(--ink);border:1px solid var(--accent)}
 #info{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:60px;color:var(--mute)}
 #map{min-height:0;height:100%}
-.pin{font-size:26px;filter:drop-shadow(0 2px 3px #000)}
+.pin{filter:drop-shadow(0 2px 3px #000);font-size:26px;line-height:1}
 .leaflet-popup-content-wrapper{background:var(--panel);color:var(--ink)}
 .leaflet-popup-tip{background:var(--panel)}
 :focus-visible{outline:3px solid var(--green);outline-offset:2px}
@@ -39,64 +43,115 @@ button.btn.alt,a.btn.alt{background:transparent;color:var(--ink);border:1px soli
 </head>
 <body>
 <header>
-  <h1>Halloween de película</h1>
-  <p>31 de octubre · Toca un sitio decorado y te mostramos cómo llegar</p>
+  <h1>Halloween en el pueblo</h1>
+  <p>31 de octubre · Toca un sitio y te mostramos cómo llegar</p>
 </header>
 <main>
   <aside>
     <div class="actions">
       <button class="btn" id="locate">Usar mi ubicación</button>
     </div>
-    <h2>Sitios decorados</h2>
-    <div id="list"></div>
+
+    <div class="filters" id="filters"></div>
+
     <h2>Cómo llegar</h2>
     <div id="info">Elige un sitio de la lista o del mapa.</div>
     <div class="actions" id="routeActions" hidden>
       <a class="btn" id="gmaps" target="_blank" rel="noopener">Abrir en Google Maps</a>
       <button class="btn alt" id="clear">Quitar ruta</button>
     </div>
+
+    <div id="lists"></div>
   </aside>
-  <div id="map" role="application" aria-label="Mapa de sitios decorados"></div>
+  <div id="map" role="application" aria-label="Mapa de Halloween"></div>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 /* ============ EDITA AQUÍ ============ */
-// Centro del mapa (latitud, longitud) y zoom. Cámbialo por tu pueblo.
 const CENTRO = [42.2722, -5.7361];
-const ZOOM = 16;
+const ZOOM = 17;
 
-// Tus sitios: nombre, descripción, emoji, latitud, longitud.
-// Para sacar las coordenadas: en Google Maps, clic derecho sobre el lugar y toca los números.
-const SITIOS = [
-  {nombre:"Casa del Terror", desc:"Pasillo del miedo, de 18:00 a 21:00", emoji:"👻", lat:42.2732, lng:-5.7361},
-  {nombre:"Plaza de las Calabazas", desc:"Concurso de calabazas talladas", emoji:"🎃", lat:42.2712, lng:-5.7301},
-  {nombre:"Cementerio de Cartón", desc:"Jardín decorado, apto para peques", emoji:"🪦", lat:42.2742, lng:-5.7341},
-  {nombre:"Bar de las Brujas", desc:"Chocolate caliente y pasteles", emoji:"🧙", lat:42.2752, lng:-5.7381}
+// Casas de chuches: cada una lleva un caramelo de un color distinto.
+// Ejemplos inventados: sustitúyelos por los reales.
+const CHUCHES = [
+  {nombre:"Casa de Marta",        desc:"Chuches de 18:00 a 20:30",  color:"#ef4444", lat:42.2729, lng:-5.7372},
+  {nombre:"Casa de los Álvarez",  desc:"Chuches de 18:00 a 20:30",  color:"#f97316", lat:42.2716, lng:-5.7349},
+  {nombre:"Casa de Pepe y Rosa",  desc:"Chuches de 18:00 a 20:30",  color:"#facc15", lat:42.2734, lng:-5.7350},
+  {nombre:"Casa de Lucía",        desc:"Chuches de 18:00 a 20:30",  color:"#22c55e", lat:42.2712, lng:-5.7371},
+  {nombre:"Casa de los Gómez",    desc:"Chuches de 18:00 a 20:30",  color:"#3b82f6", lat:42.2727, lng:-5.7338},
+  {nombre:"Casa del Molino",      desc:"Chuches de 18:00 a 20:30",  color:"#a855f7", lat:42.2708, lng:-5.7358},
+  {nombre:"Casa de Antonio",      desc:"Chuches de 18:00 a 20:30",  color:"#ec4899", lat:42.2722, lng:-5.7385}
+];
+
+// Sitios decorados: nombre, descripción, emoji y coordenadas.
+// Para sacar coordenadas: en Google Maps, clic derecho sobre el lugar y toca los números.
+const DECORADOS = [
+  {nombre:"Casa del Terror",       desc:"Pasillo del miedo, de 18:00 a 21:00", emoji:"👻", lat:42.2731, lng:-5.7365},
+  {nombre:"Plaza de las Calabazas",desc:"Concurso de calabazas talladas",       emoji:"🎃", lat:42.2720, lng:-5.7355},
+  {nombre:"Cementerio de Cartón",  desc:"Jardín decorado, apto para peques",    emoji:"🪦", lat:42.2715, lng:-5.7378},
+  {nombre:"Bar de las Brujas",     desc:"Chocolate caliente y pasteles",        emoji:"🧙", lat:42.2725, lng:-5.7345}
 ];
 /* ==================================== */
+
+function caramelo(c){
+  return '<svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">'+
+    '<path d="M2 8 L10 15 L2 22Z" fill="'+c+'"/><path d="M28 8 L20 15 L28 22Z" fill="'+c+'"/>'+
+    '<circle cx="15" cy="15" r="8.5" fill="'+c+'" stroke="#fff" stroke-width="2"/>'+
+    '<path d="M10 12.5 Q15 8 20 12.5" stroke="#fff" stroke-width="1.5" fill="none" opacity=".7"/></svg>';
+}
+
+const GRUPOS = [
+  {id:'chuches',  titulo:'Casas de chuches', datos:CHUCHES,   icono:p=>caramelo(p.color), chip:caramelo('#ec4899')},
+  {id:'decorados',titulo:'Sitios decorados', datos:DECORADOS, icono:p=>p.emoji,           chip:'🎃'}
+];
 
 const map = L.map('map').setView(CENTRO, ZOOM);
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
   maxZoom:19, attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 }).addTo(map);
 
-const list = document.getElementById('list');
 const info = document.getElementById('info');
 const acts = document.getElementById('routeActions');
-let origen = null, userMarker = null, routeLine = null, destino = null, markers = [];
+const lists = document.getElementById('lists');
+const filters = document.getElementById('filters');
+let origen = null, userMarker = null, routeLine = null;
+const capas = {};
+const botones = [];
 
-function icono(e){return L.divIcon({html:'<div class="pin">'+e+'</div>',className:'',iconSize:[30,30],iconAnchor:[15,26],popupAnchor:[0,-24]});}
+GRUPOS.forEach(g=>{
+  capas[g.id] = L.layerGroup().addTo(map);
 
-SITIOS.forEach((s,i)=>{
-  const m = L.marker([s.lat,s.lng],{icon:icono(s.emoji),title:s.nombre}).addTo(map);
-  m.bindPopup('<strong>'+s.nombre+'</strong><br>'+s.desc);
-  m.on('click',()=>elegir(i));
-  markers.push(m);
-  const b = document.createElement('button');
-  b.className='place'; b.innerHTML='<strong>'+s.emoji+' '+s.nombre+'</strong><span>'+s.desc+'</span>';
-  b.onclick=()=>{map.panTo([s.lat,s.lng]);markers[i].openPopup();elegir(i);};
-  list.appendChild(b);
+  // Filtro
+  const lab = document.createElement('label');
+  lab.innerHTML = '<input type="checkbox" checked> <span class="ic" style="display:inline-flex">'+g.chip+'</span> <span>'+g.titulo+'</span>';
+  lab.querySelector('input').onchange = e => {
+    e.target.checked ? capas[g.id].addTo(map) : capas[g.id].remove();
+    document.getElementById('lista-'+g.id).hidden = !e.target.checked;
+  };
+  lab.querySelector('.ic').style.cssText='display:inline-flex;width:24px;height:24px;align-items:center;justify-content:center;font-size:18px';
+  lab.querySelector('svg') && lab.querySelector('svg').setAttribute('width','24');
+  filters.appendChild(lab);
+
+  // Lista
+  const sec = document.createElement('div');
+  sec.id = 'lista-'+g.id;
+  sec.innerHTML = '<h2>'+g.titulo+'</h2>';
+  g.datos.forEach(p=>{
+    const m = L.marker([p.lat,p.lng],{
+      icon:L.divIcon({html:'<div class="pin">'+g.icono(p)+'</div>',className:'',iconSize:[30,30],iconAnchor:[15,26],popupAnchor:[0,-24]}),
+      title:p.nombre
+    }).addTo(capas[g.id]);
+    m.bindPopup('<strong>'+p.nombre+'</strong><br>'+p.desc);
+    m.on('click',()=>elegir(p,b));
+    const b = document.createElement('button');
+    b.className='place';
+    b.innerHTML='<span class="ic">'+g.icono(p)+'</span><span><strong>'+p.nombre+'</strong><span class="d">'+p.desc+'</span></span>';
+    b.onclick=()=>{map.panTo([p.lat,p.lng]);m.openPopup();elegir(p,b);};
+    botones.push(b);
+    sec.appendChild(b);
+  });
+  lists.appendChild(sec);
 });
 
 function pedirUbicacion(){
@@ -118,12 +173,12 @@ document.getElementById('locate').onclick=async()=>{
   catch(e){ info.textContent=e.message; }
 };
 
-async function elegir(i){
-  const s=SITIOS[i]; destino=s;
-  document.querySelectorAll('.place').forEach((el,j)=>el.classList.toggle('on',i===j));
+async function elegir(s,btn){
+  botones.forEach(x=>x.classList.toggle('on',x===btn));
   acts.hidden=false;
   const dest=s.lat+','+s.lng;
   const g=document.getElementById('gmaps');
+  g.href='https://www.google.com/maps/dir/?api=1&travelmode=walking&destination='+dest;
   info.textContent='Buscando la ruta a '+s.nombre+'…';
   try{
     await pedirUbicacion();
@@ -138,15 +193,14 @@ async function elegir(i){
     const km=ruta.distance>=1000?(ruta.distance/1000).toFixed(1)+' km':Math.round(ruta.distance)+' m';
     info.innerHTML='<strong>'+s.nombre+'</strong><br>A pie: '+Math.max(1,Math.round(ruta.duration/60))+' min · '+km;
   }catch(e){
-    g.href='https://www.google.com/maps/dir/?api=1&travelmode=walking&destination='+dest;
     info.textContent=origen?'No se pudo calcular la ruta aquí. Prueba con Google Maps.':e.message+' Puedes abrir el sitio en Google Maps.';
   }
 }
 
 document.getElementById('clear').onclick=()=>{
   if(routeLine){routeLine.remove();routeLine=null;}
-  acts.hidden=true; destino=null;
-  document.querySelectorAll('.place').forEach(el=>el.classList.remove('on'));
+  acts.hidden=true;
+  botones.forEach(x=>x.classList.remove('on'));
   info.textContent='Elige un sitio de la lista o del mapa.';
   map.setView(CENTRO,ZOOM);
 };
