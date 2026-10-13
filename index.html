@@ -33,6 +33,7 @@ button.btn.alt,a.btn.alt{background:transparent;color:var(--ink);border:1px soli
 .pin{filter:drop-shadow(0 2px 3px #000);font-size:26px;line-height:1}
 .leaflet-popup-content-wrapper{background:var(--panel);color:var(--ink)}
 .leaflet-popup-tip{background:var(--panel)}
+.cartel{display:block;width:100%;max-height:340px;object-fit:contain;border-radius:8px;margin:0 0 8px;background:#000}
 :focus-visible{outline:3px solid var(--green);outline-offset:2px}
 @media (max-width:760px){
  main{grid-template-columns:1fr;grid-template-rows:55% 45%}
@@ -43,7 +44,7 @@ button.btn.alt,a.btn.alt{background:transparent;color:var(--ink);border:1px soli
 </head>
 <body>
 <header>
-  <h1>Halloween en el pueblo</h1>
+  <h1>Halloween en Zotes</h1>
   <p>31 de octubre · Toca un sitio y te mostramos cómo llegar</p>
 </header>
 <main>
@@ -75,22 +76,24 @@ const ZOOM = 17;
 // Casas de chuches: cada una lleva un caramelo de un color distinto.
 // Ejemplos inventados: sustitúyelos por los reales.
 const CHUCHES = [
-  {nombre:"Casa de Marta",        desc:"Chuches de 18:00 a 20:30",  color:"#ef4444", lat:42.2729, lng:-5.7372},
-  {nombre:"Casa de los Álvarez",  desc:"Chuches de 18:00 a 20:30",  color:"#f97316", lat:42.2716, lng:-5.7349},
-  {nombre:"Casa de Pepe y Rosa",  desc:"Chuches de 18:00 a 20:30",  color:"#facc15", lat:42.2734, lng:-5.7350},
-  {nombre:"Casa de Lucía",        desc:"Chuches de 18:00 a 20:30",  color:"#22c55e", lat:42.2712, lng:-5.7371},
-  {nombre:"Casa de los Gómez",    desc:"Chuches de 18:00 a 20:30",  color:"#3b82f6", lat:42.2727, lng:-5.7338},
-  {nombre:"Casa del Molino",      desc:"Chuches de 18:00 a 20:30",  color:"#a855f7", lat:42.2708, lng:-5.7358},
-  {nombre:"Casa de Antonio",      desc:"Chuches de 18:00 a 20:30",  color:"#ec4899", lat:42.2722, lng:-5.7385}
+  {nombre:"Casa roja",            desc:"Chuches de 18:00 a 20:00",  color:"#ef4444", lat:42.2729, lng:-5.7372},
+  {nombre:"Casa naranja",         desc:"Chuches de 18:00 a 20:00",  color:"#f97316", lat:42.2716, lng:-5.7349},
+  {nombre:"Casa amarilla",        desc:"Chuches de 18:00 a 20:00",  color:"#facc15", lat:42.2734, lng:-5.7350},
+  {nombre:"Casa verde",           desc:"Chuches de 18:00 a 20:00",  color:"#22c55e", lat:42.2712, lng:-5.7371},
+  {nombre:"Casa azul",            desc:"Chuches de 18:00 a 20:00",  color:"#3b82f6", lat:42.2727, lng:-5.7338},
+  {nombre:"Casa morada",          desc:"Chuches de 18:00 a 20:00",  color:"#a855f7", lat:42.2708, lng:-5.7358},
+  {nombre:"Casa rosa",            desc:"Chuches de 18:00 a 20:00",  color:"#ec4899", lat:42.2722, lng:-5.7385}
 ];
 
-// Sitios decorados: nombre, descripción, emoji y coordenadas.
+// Sitios decorados: nombre, película, imagen (ruta del archivo), descripción, emoji y coordenadas.
+// Las imágenes van en una carpeta "img" junto a index.html. Si un sitio no tiene imagen, déjala como "".
 // Para sacar coordenadas: en Google Maps, clic derecho sobre el lugar y toca los números.
 const DECORADOS = [
-  {nombre:"Casa del Terror",       desc:"Pasillo del miedo, de 18:00 a 21:00", emoji:"👻", lat:42.2731, lng:-5.7365},
-  {nombre:"Plaza de las Calabazas",desc:"Concurso de calabazas talladas",       emoji:"🎃", lat:42.2720, lng:-5.7355},
-  {nombre:"Cementerio de Cartón",  desc:"Jardín decorado, apto para peques",    emoji:"🪦", lat:42.2715, lng:-5.7378},
-  {nombre:"Bar de las Brujas",     desc:"Chocolate caliente y pasteles",        emoji:"🧙", lat:42.2725, lng:-5.7345}
+  {nombre:"IT",       pelicula:"IT", imagen:"img/it.png", desc:"", emoji:"👻", lat:42.2721, lng:-5.7349},
+  {nombre:"Casper",       pelicula:"Casper", imagen:"img/casper.png", desc:"", emoji:"👻", lat:42.2728, lng:-5.7385},
+  {nombre:"Hotel Transilvania",pelicula:"Hotel Transilvania", imagen:"img/hoteltransilvania.jpg", desc:"",       emoji:"🎃", lat:42.2723, lng:-5.7364},
+  {nombre:"Zona tóxica y cementerio",  pelicula:"Zona tóxica", imagen:"img/zonatoxica.jpg", desc:"",    emoji:"🪦", lat:42.2736, lng:-5.7377},
+  {nombre:"El retorno de las brujas",     pelicula:"El retorno de las brujas", imagen:"img/brujas.png", desc:"",        emoji:"🧙", lat:42.2725, lng:-5.7345}
 ];
 /* ==================================== */
 
@@ -142,7 +145,7 @@ GRUPOS.forEach(g=>{
       icon:L.divIcon({html:'<div class="pin">'+g.icono(p)+'</div>',className:'',iconSize:[30,30],iconAnchor:[15,26],popupAnchor:[0,-24]}),
       title:p.nombre
     }).addTo(capas[g.id]);
-    m.bindPopup('<strong>'+p.nombre+'</strong><br>'+p.desc);
+    m.bindPopup(contenidoPopup(p),{maxWidth:260,minWidth:200});
     m.on('click',()=>elegir(p,b));
     const b = document.createElement('button');
     b.className='place';
@@ -153,6 +156,17 @@ GRUPOS.forEach(g=>{
   });
   lists.appendChild(sec);
 });
+
+function esc(t){return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function contenidoPopup(p){
+  let h='';
+  if(p.imagen) h+='<img class="cartel" src="'+esc(p.imagen)+'" alt="'+esc(p.pelicula||p.nombre)+'" onload="actualizarPopup()" onerror="this.remove();actualizarPopup()">';
+  h+='<strong>'+esc(p.nombre)+'</strong>';
+  if(p.pelicula) h+='<br><em>Basado en: '+esc(p.pelicula)+'</em>';
+  h+='<br>'+esc(p.desc);
+  return h;
+}
+function actualizarPopup(){ if(map._popup) map._popup.update(); }
 
 function pedirUbicacion(){
   return new Promise((ok,ko)=>{
