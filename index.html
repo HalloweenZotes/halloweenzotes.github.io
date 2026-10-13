@@ -34,7 +34,7 @@ button.btn.alt,a.btn.alt{background:transparent;color:var(--ink);border:1px soli
 .pin{filter:drop-shadow(0 2px 3px #000);font-size:26px;line-height:1}
 .leaflet-popup-content-wrapper{background:var(--panel);color:var(--ink)}
 .leaflet-popup-tip{background:var(--panel)}
-.cartel{display:block;width:100%;max-height:340px;object-fit:contain;border-radius:8px;margin:0 0 8px;background:#000}
+.cartel{display:block;width:100%;max-height:220px;object-fit:contain;border-radius:8px;margin:0 0 8px;background:#000}
 :focus-visible{outline:3px solid var(--green);outline-offset:2px}
 @media (max-width:760px){
  main{grid-template-columns:1fr;grid-template-rows:55% 45%}
@@ -156,7 +156,7 @@ GRUPOS.forEach(g=>{
       icon:L.divIcon({html:'<div class="pin">'+g.icono(p)+'</div>',className:'',iconSize:[30,30],iconAnchor:[15,26],popupAnchor:[0,-24]}),
       title:p.nombre
     }).addTo(capas[g.id]);
-    m.bindPopup(contenidoPopup(p),{maxWidth:260,minWidth:200});
+    m.bindPopup(contenidoPopup(p),{maxWidth:200,minWidth:160});
     m.on('click',()=>elegir(p,b));
     const b = document.createElement('button');
     b.className='place';
@@ -210,7 +210,7 @@ function elegir(s,btn){
   info.innerHTML='<strong>'+esc(s.nombre)+'</strong><br>Pulsa «Cómo llegar» para ver la ruta.';
 }
 
-btnRuta.onclick=()=>{ if(elegido) trazarRuta(elegido); };
+btnRuta.onclick=()=>{ if(elegido){ map.closePopup(); trazarRuta(elegido); } };
 
 async function trazarRuta(s){
   acts.hidden=false;
