@@ -92,14 +92,16 @@ const DECORADOS = [
   {nombre:"IT",       pelicula:"IT", imagen:"img/it.png", desc:"", emoji:"🤡", lat:42.2721, lng:-5.7349},
   {nombre:"Casper",       pelicula:"Casper", imagen:"img/casper.png", desc:"", emoji:"👻", lat:42.2728, lng:-5.7385},
   {nombre:"Hotel Transilvania",pelicula:"Hotel Transilvania", imagen:"img/hoteltransilvania.png", desc:"",       emoji:"🧛", lat:42.2723, lng:-5.7364},
-  {nombre:"Zona tóxica y cementerio",  pelicula:"Zona tóxica", imagen:"img/zonatoxica.png", desc:"",    emoji:"🪦", lat:42.2736, lng:-5.7377},
+  {nombre:"Beetlejuice",     pelicula:"Beetlejuice", imagen:"img/beetlejuice.png", desc:"",        emoji:"🪲", lat:42.27264, lng:-5.736423},
+  {nombre:"Los chikos del maíz",     pelicula:"Los chikos del maíz", imagen:"img/maiz.png", desc:"",        emoji:"🌽", lat:42.272426, lng:-5.736586},
   {nombre:"El retorno de las brujas",     pelicula:"El retorno de las brujas", imagen:"img/brujas.png", desc:"",        emoji:"🧙", lat:42.271147, lng:-5.736919},
   {nombre:"La momia",       pelicula:"La momia", imagen:"img/momia.png", desc:"", emoji:"⚰️", lat:42.2728, lng:-5.73595},
   {nombre:"Frankenstein",       pelicula:"Frankenstein", imagen:"img/frank.png", desc:"", emoji:"🧟", lat:42.2713, lng:-5.7355},
-  {nombre:"Aracnofobia",pelicula:"Aracnofobia", imagen:"img/arana.png", desc:"",       emoji:"🕷️", lat:42.27315, lng:-5.73798},
   {nombre:"El baile de los esqueletos",  pelicula:"El baile de los esqueletos", imagen:"img/esqueletos.png", desc:"",    emoji:"💀", lat:42.2719, lng:-5.73696},
   {nombre:"Coco",     pelicula:"Coco", imagen:"img/coco.png", desc:"",        emoji:"🌼", lat:42.2727, lng:-5.7350},
-  {nombre:"Beetlejuice",     pelicula:"Beetlejuice", imagen:"img/beetlejuice.png", desc:"",        emoji:"🪲", lat:42.27264, lng:-5.736423}
+  {nombre:"Cementerio",  pelicula:"Cementerio", imagen:"img/zonatoxica.png", desc:"",    emoji:"🪦", lat:42.2736, lng:-5.7377},
+  {nombre:"Zona tóxica",  pelicula:"Zona tóxica", imagen:"img/zonatoxica.png", desc:"",    emoji:"☢️", lat:42.27346, lng:-5.73648},
+  {nombre:"Aracnofobia",pelicula:"Aracnofobia", imagen:"img/arana.png", desc:"",       emoji:"🕷️", lat:42.27315, lng:-5.7360}
 
 ];
 /* ==================================== */
@@ -169,7 +171,7 @@ function contenidoPopup(p){
   let h='';
   if(p.imagen) h+='<img class="cartel" src="'+esc(p.imagen)+'" alt="'+esc(p.pelicula||p.nombre)+'" onload="actualizarPopup()" onerror="this.remove();actualizarPopup()">';
   h+='<strong>'+esc(p.nombre)+'</strong>';
-  if(p.pelicula) h+='<br><em>'+esc(p.pelicula)+'</em>';
+  if(p.pelicula && p.pelicula!==p.nombre) h+='<br><em>'+esc(p.pelicula)+'</em>';
   h+='<br>'+esc(p.desc);
   return h;
 }
