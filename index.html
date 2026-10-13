@@ -27,6 +27,7 @@ aside h2{font-size:1.05rem;margin:16px 0 6px;display:flex;align-items:center;gap
 .place span.d{color:var(--mute);font-size:.9rem}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 button.btn,a.btn{background:var(--accent);color:#1b1325;border:0;border-radius:8px;padding:8px 12px;font:700 .9rem Nunito,sans-serif;cursor:pointer;text-decoration:none;display:inline-block}
+button.btn:disabled{opacity:.45;cursor:not-allowed}
 button.btn.alt,a.btn.alt{background:transparent;color:var(--ink);border:1px solid var(--accent)}
 #info{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:60px;color:var(--mute)}
 #map{min-height:0;height:100%}
@@ -51,6 +52,7 @@ button.btn.alt,a.btn.alt{background:transparent;color:var(--ink);border:1px soli
   <aside>
     <div class="actions">
       <button class="btn" id="locate">Usar mi ubicación</button>
+      <button class="btn" id="route" disabled>Cómo llegar</button>
     </div>
 
     <div class="filters" id="filters"></div>
@@ -71,7 +73,7 @@ button.btn.alt,a.btn.alt{background:transparent;color:var(--ink);border:1px soli
 <script>
 /* ============ EDITA AQUÍ ============ */
 const CENTRO = [42.2722, -5.7361];
-const ZOOM = 17;
+const ZOOM = 15;
 
 // Casas de chuches: cada una lleva un caramelo de un color distinto.
 // Ejemplos inventados: sustitúyelos por los reales.
@@ -99,7 +101,7 @@ const DECORADOS = [
   {nombre:"Frankenstein",       pelicula:"Frankenstein", imagen:"img/frank.png", desc:"", emoji:"🧟", lat:42.2713, lng:-5.7355},
   {nombre:"El baile de los esqueletos",  pelicula:"El baile de los esqueletos", imagen:"img/esqueletos.png", desc:"",    emoji:"💀", lat:42.2719, lng:-5.73696},
   {nombre:"Coco",     pelicula:"Coco", imagen:"img/coco.png", desc:"",        emoji:"🌼", lat:42.2727, lng:-5.7350},
-  {nombre:"Cementerio",  pelicula:"Cementerio", imagen:"img/zonatoxica.png", desc:"",    emoji:"🪦", lat:42.2736, lng:-5.7377},
+  //{nombre:"Cementerio",  pelicula:"Cementerio", imagen:"img/zonatoxica.png", desc:"",    emoji:"🪦", lat:42.2736, lng:-5.7377},
   {nombre:"Zona tóxica",  pelicula:"Zona tóxica", imagen:"img/zonatoxica.png", desc:"",    emoji:"☢️", lat:42.27346, lng:-5.73648},
   {nombre:"Aracnofobia",pelicula:"Aracnofobia", imagen:"img/arana.png", desc:"",       emoji:"🕷️", lat:42.27315, lng:-5.7360}
 
@@ -192,12 +194,25 @@ function pedirUbicacion(){
 }
 
 document.getElementById('locate').onclick=async()=>{
-  try{ await pedirUbicacion(); map.setView(origen,17); info.textContent='Ubicación encontrada. Elige un sitio para ver la ruta.'; }
+  try{ await pedirUbicacion(); map.setView(origen,17); info.textContent='Ubicación encontrada. Elige un sitio y pulsa «Cómo llegar».'; }
   catch(e){ info.textContent=e.message; }
 };
 
-async function elegir(s,btn){
+let elegido = null;
+const btnRuta = document.getElementById('route');
+
+function elegir(s,btn){
+  elegido = s;
   botones.forEach(x=>x.classList.toggle('on',x===btn));
+  if(routeLine){routeLine.remove();routeLine=null;}
+  acts.hidden=true;
+  btnRuta.disabled=false;
+  info.innerHTML='<strong>'+esc(s.nombre)+'</strong><br>Pulsa «Cómo llegar» para ver la ruta.';
+}
+
+btnRuta.onclick=()=>{ if(elegido) trazarRuta(elegido); };
+
+async function trazarRuta(s){
   acts.hidden=false;
   const dest=s.lat+','+s.lng;
   const g=document.getElementById('gmaps');
@@ -223,6 +238,8 @@ async function elegir(s,btn){
 document.getElementById('clear').onclick=()=>{
   if(routeLine){routeLine.remove();routeLine=null;}
   acts.hidden=true;
+  elegido=null;
+  btnRuta.disabled=true;
   botones.forEach(x=>x.classList.remove('on'));
   info.textContent='Elige un sitio de la lista o del mapa.';
   map.setView(CENTRO,ZOOM);
