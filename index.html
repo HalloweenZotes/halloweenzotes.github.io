@@ -4,6 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Halloween en Zotes</title>
+<meta name="description" content="Mapa de Halloween en Zotes: casas de chuches, sitios decorados y cómo llegar a pie.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://halloweenzotes.github.io/">
+<meta property="og:title" content="Halloween en Zotes 🎃">
+<meta property="og:description" content="31 de octubre · Casas de chuches, sitios decorados y cómo llegar a pie.">
+<meta property="og:image" content="https://halloweenzotes.github.io/img/inicio.jpeg">
+<meta property="og:image:width" content="1449">
+<meta property="og:image:height" content="1342">
+<meta property="og:locale" content="es_ES">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#1b1325">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎃</text></svg>">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Creepster&family=Nunito:wght@400;700&display=swap">
 <style>
@@ -92,19 +104,19 @@ const CHUCHES = [
 // Las imágenes van en una carpeta "img" junto a index.html. Si un sitio no tiene imagen, déjala como "".
 // Para sacar coordenadas: en Google Maps, clic derecho sobre el lugar y toca los números.
 const DECORADOS = [
-  {nombre:"IT",       pelicula:"IT", imagen:"img/it.png", desc:"", emoji:"🤡", lat:42.2721, lng:-5.7349},
-  {nombre:"Casper",       pelicula:"Casper", imagen:"img/casper.png", desc:"", emoji:"👻", lat:42.2728, lng:-5.7385},
-  {nombre:"Hotel Transilvania",pelicula:"Hotel Transilvania", imagen:"img/hoteltransilvania.png", desc:"",       emoji:"🧛", lat:42.2723, lng:-5.7364},
-  {nombre:"Beetlejuice",     pelicula:"Beetlejuice", imagen:"img/beetlejuice.png", desc:"",        emoji:"🪲", lat:42.27264, lng:-5.736423},
-  {nombre:"Los chikos del maíz",     pelicula:"Los chikos del maíz", imagen:"img/maiz.png", desc:"",        emoji:"🌽", lat:42.272426, lng:-5.736586},
-  {nombre:"El retorno de las brujas",     pelicula:"El retorno de las brujas", imagen:"img/brujas.png", desc:"",        emoji:"🧙", lat:42.271147, lng:-5.736919},
-  {nombre:"La momia",       pelicula:"La momia", imagen:"img/momia.png", desc:"", emoji:"⚰️", lat:42.2728, lng:-5.73595},
-  {nombre:"Frankenstein",       pelicula:"Frankenstein", imagen:"img/frank.png", desc:"", emoji:"🧟", lat:42.2713, lng:-5.7355},
-  {nombre:"El baile de los esqueletos",  pelicula:"El baile de los esqueletos", imagen:"img/esqueletos.png", desc:"",    emoji:"💀", lat:42.2719, lng:-5.73696},
-  {nombre:"Coco",     pelicula:"Coco", imagen:"img/coco.png", desc:"",        emoji:"🌼", lat:42.2727, lng:-5.7350},
+  {nombre:"IT",       pelicula:"IT", imagen:"img/it.webp", desc:"", emoji:"🤡", lat:42.2721, lng:-5.7349},
+  {nombre:"Casper",       pelicula:"Casper", imagen:"img/casper.webp", desc:"", emoji:"👻", lat:42.2728, lng:-5.7385},
+  {nombre:"Hotel Transilvania",pelicula:"Hotel Transilvania", imagen:"img/hoteltransilvania.webp", desc:"",       emoji:"🧛", lat:42.2723, lng:-5.7364},
+  {nombre:"Beetlejuice",     pelicula:"Beetlejuice", imagen:"img/beetlejuice.webp", desc:"",        emoji:"🪲", lat:42.27264, lng:-5.736423},
+  {nombre:"Los chikos del maíz",     pelicula:"Los chikos del maíz", imagen:"img/maiz.webp", desc:"",        emoji:"🌽", lat:42.272426, lng:-5.736586},
+  {nombre:"El retorno de las brujas",     pelicula:"El retorno de las brujas", imagen:"img/brujas.webp", desc:"",        emoji:"🧙", lat:42.271147, lng:-5.736919},
+  {nombre:"La momia",       pelicula:"La momia", imagen:"img/momia.webp", desc:"", emoji:"⚰️", lat:42.2728, lng:-5.73595},
+  {nombre:"Frankenstein",       pelicula:"Frankenstein", imagen:"img/frank.webp", desc:"", emoji:"🧟", lat:42.2713, lng:-5.7355},
+  {nombre:"El baile de los esqueletos",  pelicula:"El baile de los esqueletos", imagen:"img/esqueletos.webp", desc:"",    emoji:"💀", lat:42.2719, lng:-5.73696},
+  {nombre:"Coco",     pelicula:"Coco", imagen:"img/coco.webp", desc:"",        emoji:"🌼", lat:42.2727, lng:-5.7350},
   {nombre:"Piratas del Caribe",  pelicula:"Piratas del Caribe", imagen:"", desc:"",    emoji:"🏴‍☠️", lat:42.2736, lng:-5.7377},
-  {nombre:"Zona tóxica",  pelicula:"Zona tóxica", imagen:"img/zonatoxica.png", desc:"",    emoji:"☢️", lat:42.27346, lng:-5.73648},
-  {nombre:"Aracnofobia",pelicula:"Aracnofobia", imagen:"img/arana.png", desc:"",       emoji:"🕷️", lat:42.27315, lng:-5.7360}
+  {nombre:"Zona tóxica",  pelicula:"Zona tóxica", imagen:"img/zonatoxica.webp", desc:"",    emoji:"☢️", lat:42.27346, lng:-5.73648},
+  {nombre:"Aracnofobia",pelicula:"Aracnofobia", imagen:"img/arana.webp", desc:"",       emoji:"🕷️", lat:42.27315, lng:-5.7360}
 
 ];
 /* ==================================== */
@@ -181,17 +193,27 @@ function contenidoPopup(p){
 }
 function actualizarPopup(){ if(map._popup) map._popup.update(); }
 
+let vigilando = false;
+function ponerPosicion(p){
+  origen=[p.coords.latitude,p.coords.longitude];
+  if(userMarker) userMarker.setLatLng(origen);
+  else userMarker=L.circleMarker(origen,{radius:8,color:'#fff',weight:3,fillColor:'#3b82f6',fillOpacity:1}).addTo(map).bindPopup('Estás aquí');
+}
+
+// Pide siempre una posición reciente (no la primera que se obtuvo) y, desde la primera vez,
+// sigue la ubicación para que el punto azul se mueva mientras caminas.
 function pedirUbicacion(){
   return new Promise((ok,ko)=>{
-    if(origen) return ok(origen);
     if(!navigator.geolocation) return ko(new Error('Tu navegador no permite geolocalización.'));
     navigator.geolocation.getCurrentPosition(p=>{
-      origen=[p.coords.latitude,p.coords.longitude];
-      if(userMarker) userMarker.remove();
-      userMarker=L.circleMarker(origen,{radius:8,color:'#fff',weight:3,fillColor:'#3b82f6',fillOpacity:1}).addTo(map).bindPopup('Estás aquí');
+      ponerPosicion(p);
+      if(!vigilando){
+        vigilando=true;
+        navigator.geolocation.watchPosition(ponerPosicion,()=>{},{enableHighAccuracy:true,maximumAge:5000});
+      }
       ok(origen);
-    },()=>ko(new Error('No pudimos obtener tu ubicación. Activa el permiso de ubicación y vuelve a intentarlo.')),
-    {enableHighAccuracy:true,timeout:10000});
+    },()=>origen?ok(origen):ko(new Error('No pudimos obtener tu ubicación. Activa el permiso de ubicación y vuelve a intentarlo.')),
+    {enableHighAccuracy:true,timeout:10000,maximumAge:5000});
   });
 }
 
