@@ -8,7 +8,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://halloweenzotes.github.io/">
 <meta property="og:title" content="Halloween en Zotes 🎃">
-<meta property="og:description" content="31 de octubre · Casas de chuches, sitios decorados y cómo llegar a pie.">
+<meta property="og:description" content="31 de octubre · Mapa con las casas de chuches y los sitios decorados de películas terroríficas.">
 <meta property="og:image" content="https://halloweenzotes.github.io/img/inicio.jpeg">
 <meta property="og:image:width" content="1449">
 <meta property="og:image:height" content="1342">
@@ -63,7 +63,6 @@ button.btn.alt,a.btn.alt{background:transparent;color:var(--ink);border:1px soli
 <main>
   <aside>
     <div class="actions">
-      <button class="btn" id="locate">Usar mi ubicación</button>
       <button class="btn" id="route" disabled>Cómo llegar</button>
     </div>
 
@@ -217,10 +216,9 @@ function pedirUbicacion(){
   });
 }
 
-document.getElementById('locate').onclick=async()=>{
-  try{ await pedirUbicacion(); map.setView(origen,17); info.textContent='Ubicación encontrada. Elige un sitio y pulsa «Cómo llegar».'; }
-  catch(e){ info.textContent=e.message; }
-};
+// Al entrar, pide la ubicación para mostrar el punto azul. Si la deniegan no pasa nada:
+// «Cómo llegar» la volverá a pedir y, si no, ofrece Google Maps.
+pedirUbicacion().catch(()=>{});
 
 let elegido = null;
 const btnRuta = document.getElementById('route');
