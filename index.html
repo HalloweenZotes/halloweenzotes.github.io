@@ -46,7 +46,7 @@ button.btn.alt,a.btn.alt{background:transparent;color:var(--ink);border:1px soli
 .pin{filter:drop-shadow(0 2px 3px #000);font-size:26px;line-height:1}
 .leaflet-popup-content-wrapper{background:var(--panel);color:var(--ink)}
 .leaflet-popup-tip{background:var(--panel)}
-.cartel{display:block;width:100%;max-height:220px;object-fit:contain;border-radius:8px;margin:0 0 8px;background:#000}
+.cartel{display:block;width:100%;height:auto;max-height:220px;object-fit:contain;border-radius:8px;margin:0 0 8px;background:#000}
 :focus-visible{outline:3px solid var(--green);outline-offset:2px}
 @media (max-width:760px){
  main{grid-template-columns:1fr;grid-template-rows:55% 45%}
@@ -169,7 +169,7 @@ GRUPOS.forEach(g=>{
       icon:L.divIcon({html:'<div class="pin">'+g.icono(p)+'</div>',className:'',iconSize:[30,30],iconAnchor:[15,26],popupAnchor:[0,-24]}),
       title:p.nombre
     }).addTo(capas[g.id]);
-    m.bindPopup(contenidoPopup(p),{maxWidth:200,minWidth:160});
+    m.bindPopup(contenidoPopup(p,m),{maxWidth:200,minWidth:160});
     m.on('click',()=>elegir(p,b));
     const b = document.createElement('button');
     b.className='place';
@@ -182,15 +182,21 @@ GRUPOS.forEach(g=>{
 });
 
 function esc(t){return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
-function contenidoPopup(p){
+// El popup se crea una sola vez como elemento (no como texto). Si fuera texto, cada update() del
+// popup volvería a crear la imagen, que volvería a disparar su carga: un bucle que cuelga Safari.
+// width/height reservan el hueco de la imagen (2:3) para que no haya que recolocar el popup al cargar.
+function contenidoPopup(p,marker){
+  const div=document.createElement('div');
   let h='';
-  if(p.imagen) h+='<img class="cartel" src="'+esc(p.imagen)+'" alt="'+esc(p.pelicula||p.nombre)+'" onload="actualizarPopup()" onerror="this.remove();actualizarPopup()">';
+  if(p.imagen) h+='<img class="cartel" width="400" height="600" loading="lazy" src="'+esc(p.imagen)+'" alt="'+esc(p.pelicula||p.nombre)+'">';
   h+='<strong>'+esc(p.nombre)+'</strong>';
   if(p.pelicula && p.pelicula!==p.nombre) h+='<br><em>'+esc(p.pelicula)+'</em>';
-  h+='<br>'+esc(p.desc);
-  return h;
+  if(p.desc) h+='<br>'+esc(p.desc);
+  div.innerHTML=h;
+  const img=div.querySelector('img');
+  if(img) img.onerror=()=>{ img.remove(); if(marker.isPopupOpen()) marker.getPopup().update(); };
+  return div;
 }
-function actualizarPopup(){ if(map._popup) map._popup.update(); }
 
 let vigilando = false;
 function ponerPosicion(p){
